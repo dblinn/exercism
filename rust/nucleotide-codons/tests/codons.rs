@@ -7,28 +7,24 @@ fn test_methionine() {
 }
 
 #[test]
-#[ignore]
 fn test_cysteine_tgt() {
     let info = codons::parse(make_pairs());
     assert_eq!(info.name_for("TGT"), Ok("cysteine"));
 }
 
 #[test]
-#[ignore]
 fn test_cysteine_tgy() { // "compressed" name for TGT and TGC
     let info = codons::parse(make_pairs());
     assert_eq!(info.name_for("TGY"), Ok("cysteine"));
 }
 
 #[test]
-#[ignore]
 fn test_stop() {
     let info = codons::parse(make_pairs());
     assert_eq!(info.name_for("TAA"), Ok("stop codon"));
 }
 
 #[test]
-#[ignore]
 fn test_valine() {
     let info = codons::parse(make_pairs());
     assert_eq!(info.name_for("GTN"), Ok("valine"));
@@ -36,14 +32,12 @@ fn test_valine() {
 
 
 #[test]
-#[ignore]
 fn test_isoleucine() {
     let info = codons::parse(make_pairs());
     assert_eq!(info.name_for("ATH"), Ok("isoleucine"));
 }
 
 #[test]
-#[ignore]
 fn test_arginine_name() {
     // In arginine CGA can be "compresed" both as CGN and as MGR
     let info = codons::parse(make_pairs());
@@ -53,7 +47,6 @@ fn test_arginine_name() {
 }
 
 #[test]
-#[ignore]
 fn test_invalid() {
     let info = codons::parse(make_pairs());
     assert!(info.name_for("").is_err());
