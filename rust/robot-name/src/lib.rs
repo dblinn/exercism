@@ -11,7 +11,6 @@ impl Robot {
 	}
 
 	fn generate_name() -> String {
-
 		let mut rng = rand::thread_rng();
 		let numbers_range = Range::new(48u8, 57u8);
 		let letters_range = Range::new(65u8, 90u8);
