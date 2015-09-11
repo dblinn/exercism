@@ -11,9 +11,9 @@ impl Robot {
 
 	fn generate_name() -> String {
 		let mut rng = rand::thread_rng();
-		String::new() +
-			&rand::sample(&mut rng, b'A'..b'Z', 3).iter().map(|c| *c as char).collect::<String>() +
-			&rand::sample(&mut rng, b'0'..b'9', 3).iter().map(|c| *c as char).collect::<String>()
+		rand::sample(&mut rng, b'A'..b'Z', 3).iter().map(|c| *c as char)
+			.chain(rand::sample(&mut rng, b'0'..b'9', 3).iter().map(|c| *c as char))
+			.collect::<String>()
 	}
 
 	pub fn name<'a>(&'a self) -> &'a str {
