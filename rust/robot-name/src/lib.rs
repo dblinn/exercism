@@ -1,5 +1,4 @@
 extern crate rand;
-use rand::distributions::{IndependentSample, Range};
 
 pub struct Robot {
 	name: String,
@@ -12,14 +11,9 @@ impl Robot {
 
 	fn generate_name() -> String {
 		let mut rng = rand::thread_rng();
-		let numbers_range = Range::new(48u8, 57u8);
-		let letters_range = Range::new(65u8, 90u8);
-
-		let mut results = String::new();
-		for _ in (0..3) { results.push(letters_range.ind_sample(&mut rng) as char); }
-		for _ in (0..3) { results.push(numbers_range.ind_sample(&mut rng) as char); }
-
-		results
+		String::new() +
+			&rand::sample(&mut rng, b'A'..b'Z', 3).iter().map(|c| *c as char).collect::<String>() +
+			&rand::sample(&mut rng, b'0'..b'9', 3).iter().map(|c| *c as char).collect::<String>()
 	}
 
 	pub fn name<'a>(&'a self) -> &'a str {
