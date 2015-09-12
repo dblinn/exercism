@@ -26,25 +26,21 @@ fn test_shout_numbers() {
 }
 
 #[test]
-#[ignore]
 fn test_shout_weird_characters() {
     assert_eq!("Whoa, chill out!", bob::reply("ZOMG THE %^*@#$(*^ ZOMBIES ARE COMING!!11!!1!"));
 }
 
 #[test]
-#[ignore]
 fn test_shout_without_punctuation() {
     assert_eq!("Whoa, chill out!", bob::reply("I HATE YOU"));
 }
 
 #[test]
-#[ignore]
 fn test_shout_without_question_mark() {
     assert_eq!("Whatever.", bob::reply("Ending with ? means a question."));
 }
 
 #[test]
-#[ignore]
 fn test_silent_treatment() {
     assert_eq!("Fine. Be that way!", bob::reply(""));
 }
