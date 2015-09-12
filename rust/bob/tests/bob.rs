@@ -6,25 +6,21 @@ fn test_statement() {
 }
 
 #[test]
-#[ignore]
 fn test_shouting() {
     assert_eq!("Whoa, chill out!", bob::reply("WATCH OUT!"));
 }
 
 #[test]
-#[ignore]
 fn test_exclaiming() {
     assert_eq!("Whatever.", bob::reply("Let's go make out behind the gym!"));
 }
 
 #[test]
-#[ignore]
 fn test_asking() {
     assert_eq!("Sure.", bob::reply("Does this cryogenic chamber make me look fat?"));
 }
 
 #[test]
-#[ignore]
 fn test_shout_numbers() {
     assert_eq!("Whoa, chill out!", bob::reply("1, 2, 3 GO!"));
 }
@@ -52,4 +48,3 @@ fn test_shout_without_question_mark() {
 fn test_silent_treatment() {
     assert_eq!("Fine. Be that way!", bob::reply(""));
 }
-
