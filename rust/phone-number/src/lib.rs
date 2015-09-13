@@ -31,10 +31,10 @@ fn clean_number(phone: &str) -> String {
 }
 
 fn pretty_number(phone: &str) -> String {
-    String::with_capacity(14) +
-        "(" + area_code_part(phone) + ") " +
-        local_exchange_part(phone) + "-" +
-        line_number_part(phone)
+    format!("({}) {}-{}",
+        area_code_part(phone),
+        local_exchange_part(phone),
+        line_number_part(phone))
 }
 
 fn area_code_part(phone: &str) -> &str {
