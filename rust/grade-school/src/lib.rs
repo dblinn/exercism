@@ -19,7 +19,7 @@ impl School {
 
     pub fn grades(&self) -> Vec<u32> {
         let mut grades : Vec<u32> = self.registrar.keys()
-            .map(|grade| *grade)
+            .cloned()
             .collect();
         grades.sort();
         grades
