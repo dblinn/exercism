@@ -5,7 +5,7 @@ pub fn sing(start_verse: usize, end_verse: usize) -> String {
         .connect("\n")
 }
 
-pub fn verse<'a>(verse_index: usize) -> String {
+pub fn verse(verse_index: usize) -> String {
     match verse_index {
         0 => verse_zero(),
         1 => verse_one(),
