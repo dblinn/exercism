@@ -1,16 +1,12 @@
 pub fn hex_to_int(hex: &str) -> Option<u32> {
-    hex.chars()
-        .rev()
-        .enumerate()
-        .fold(Some(0), |option_sum, (i, hex_char)|
-            option_sum.and_then(|sum| hex_add(sum, hex_char, i) )
-        )
-}
+    let mut sum = 0;
+    for (i, hex_char) in hex.chars().rev().enumerate() {
+        let hex_option = hex_value(hex_char);
+        if hex_option.is_none() { return None }
 
-fn hex_add(sum: u32, hex_char: char, offset: usize) {
-    hex_value(hex_char).and_then(|hex_number|
-        Some(sum_number + hex_offset(hex_number, offset))
-    )
+        sum += hex_offset(hex_option.unwrap(), i);
+    }
+    Some(sum)
 }
 
 fn hex_offset(hex_value: u32, offset: usize) -> u32 {
