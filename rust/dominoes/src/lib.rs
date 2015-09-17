@@ -18,15 +18,17 @@ pub fn chain(dominoes: &Vec<Domino>) -> Option<Vec<Domino>> {
 
 pub fn scan_for_chain(domino: Domino, input: &mut Vec<Domino>, output: &mut Vec<Domino>) -> bool
 {
-    if input.is_empty() { return true }
+    if input.is_empty() { return output.first().unwrap().0 == output.last().unwrap().1 }
 
     let matching_dominoes = input.iter()
         .enumerate()
-        .filter(|&(_, other_domino)| domino.1== other_domino.0)
-        .map(|(i, domino_ref)| (i, *domino_ref))
-        .collect::<Vec<(usize, Domino)>>();
+        .fold(vec![], |mut matches, (i, other_domino)| {
+            if domino.1== other_domino.0 { matches.push((i, *other_domino)); }
+            else if domino.1 == other_domino.1 { matches.push((i, (other_domino.1, other_domino.0))); }
+            matches
+        });
     if matching_dominoes.is_empty() { return false }
-    
+
     for (i, matching_domino) in matching_dominoes
     {
         input.remove(i);
