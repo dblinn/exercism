@@ -14,7 +14,7 @@ pub fn chain(dominoes: &Vec<Domino>) -> Option<Vec<Domino>> {
     None
 }
 
-pub fn scan_for_chain(domino: Domino, input: &mut Vec<Domino>, output: &mut Vec<Domino>) -> bool
+fn scan_for_chain(domino: Domino, input: &mut Vec<Domino>, output: &mut Vec<Domino>) -> bool
 {
     if input.is_empty() { return output.first().unwrap().0 == output.last().unwrap().1 }
 
