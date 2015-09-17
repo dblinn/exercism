@@ -1,14 +1,10 @@
 pub fn hex_to_int(hex: &str) -> Option<u32> {
-    hex.chars().rev().enumerate().fold(Some(0), |sum, (i, hex_char)| {
+    hex.chars().fold(Some(0), |sum, hex_char| {
         match hex_value(hex_char) {
-            Some(hex_value) => sum.map(|x| x + hex_offset(hex_value, i)),
+            Some(hex_value) => sum.map(|x| (x << 4) + hex_value),
             None => None
         }
     })
-}
-
-fn hex_offset(hex_value: u32, offset: usize) -> u32 {
-    hex_value << 4 * offset
 }
 
 fn hex_value(c: char) -> Option<u32> {
