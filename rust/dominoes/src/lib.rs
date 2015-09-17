@@ -5,13 +5,11 @@ pub fn chain(dominoes: &Vec<Domino>) -> Option<Vec<Domino>> {
     if dominoes.is_empty() { return Some(input) }
 
     let mut output = Vec::<Domino>::with_capacity(dominoes.len());
-    for i in 0 .. input.len() {
-        let domino = input.remove(i);
-        output.push(domino);
-        if scan_for_chain(domino, &mut input, &mut output) { return Some(output); }
-        output.pop();
-        input.insert(i, domino);
-    }
+    let domino = input.remove(0);
+    output.push(domino);
+
+    if scan_for_chain(domino, &mut input, &mut output) { return Some(output); }
+    else if scan_for_chain((domino.1, domino.0), &mut input, &mut output) { return Some(output); }
 
     None
 }
