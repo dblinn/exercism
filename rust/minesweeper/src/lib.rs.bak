@@ -1,0 +1,46 @@
+pub fn annotate(board: &Vec<&str>) -> Vec<String> {
+    count_vertical(count_horizontal(board))
+}
+
+fn count_horizontal(board: &Vec<&str>) -> Vec<Vec<Option<u8>>> {
+    board.iter().map(|line|
+        line.chars().enumerate().map(|i, c|
+            horizontal_value(c, neighbors(i, &line))
+        ).collect()
+    ).collect()
+}
+
+fn horizontal_value(c: char, neighbors: (char, char)) -> Option<u8> {
+    match c {
+        '*' => None,
+        _ => minesweeper_value(neighbors.0) + minesweeper_value(neighbors.1)
+    }
+}
+
+fn count_vertical(number_board: Vec<Vec<Option<u8>>) -> Vec<String> {
+    number_board.iter().enumerate().map(|i, line) {
+        let previous = previous(i);
+        let next = next(i, line.len());
+        line.iter().map(|value|
+
+        )
+    }
+}
+
+fn vertical_value()
+
+fn previous(index: usize) { if index == 0 { index } else { index - 1} }
+fn next(index: usize, max: usize) { if index == (max - 1) { index } else { index + 1} }
+
+fn minesweeper_value(c: char) -> u8 {
+    match c {
+        '*' => 1,
+        _ => 0
+    }
+}
+
+fn neighbors(index: usize, line: &str) -> (char, char) {
+    let previous = previous(index);
+    let next = next(index, line.len());
+    (line[previous], line[next])
+ }
