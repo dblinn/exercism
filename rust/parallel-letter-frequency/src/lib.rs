@@ -10,38 +10,42 @@ type WorkerMap = Arc<Mutex<HashMap<char,usize>>>;
 pub fn frequency(input: &[&str], workers: usize) -> HashMap<char, usize> {
     let mut worker_output = Vec::with_capacity(workers);
     for _ in (0..workers) { worker_output.push(Arc::new(Mutex::new(HashMap::new()))); }
-    let (tx, rx) = mpsc::channel();
 
-    parallel_count_frequencies(input, &worker_output, tx);
-    wait_for_jobs_to_finish(rx, input.len());
-    accumulate_results(&worker_output)
+    parallel_count_frequencies(input, &worker_output)
 }
 
-fn parallel_count_frequencies(input: &[&str], results: &Vec<WorkerMap>, tx: mpsc::Sender<usize>)
+fn parallel_count_frequencies(input: &[&str], results: &Vec<WorkerMap>) -> HashMap<char, usize>
 {
-    let pool = ThreadPool::new(results.len());
+    let (tx, rx) = mpsc::channel();
+    let worker_count = results.len();
+    let pool = ThreadPool::new(worker_count);
+    let worker_indices = (0..worker_count).chain(rx.iter());
 
-    for (i, s) in input.iter().enumerate() {
+    for (s, worker_index) in input.iter().zip(worker_indices) {
         let tx = tx.clone();
-        let worker_hash_map = results[i % results.len()].clone();
+        let worker_hash_map = results[worker_index].clone();
         let sequence = s.to_string();
+        let current_index = worker_index.clone();
+
         pool.execute(move || {
-            count_frequency_for_word(sequence, &mut worker_hash_map.lock().unwrap());
-            tx.send(i).unwrap();
+            count_frequency_for_word(&sequence, &mut worker_hash_map.lock().unwrap());
+            match tx.send(current_index) {
+                Err(mpsc::SendError(index)) => { println!("Error on worker {}: {}", index, sequence) },
+                _ => {}
+            }
         });
     }
+
+    wait_for_remaining_workers(worker_count, input.len(), &rx);
+    accumulate_results(results)
 }
 
-fn count_frequency_for_word(input: String, frequencies: &mut HashMap<char, usize>) {
+fn count_frequency_for_word(input: &str, frequencies: &mut HashMap<char, usize>) {
     for c in input.chars().filter(|c| c.is_alphabetic()) {
         for lower in c.to_lowercase() {
             *frequencies.entry(lower).or_insert(0) += 1;
         }
     }
-}
-
-fn wait_for_jobs_to_finish(rx: mpsc::Receiver<usize>, message_count: usize) {
-    for _ in rx.iter().take(message_count) { }
 }
 
 fn accumulate_results(results: &Vec<WorkerMap>) -> HashMap<char,usize> {
@@ -53,4 +57,10 @@ fn accumulate_results(results: &Vec<WorkerMap>) -> HashMap<char,usize> {
     }
 
     cumulative
+}
+
+fn wait_for_remaining_workers(worker_count: usize, input_size: usize,
+    rx: &mpsc::Receiver<usize>)
+{
+    for _ in rx.iter().take(std::cmp::min(worker_count, input_size)) {}
 }
