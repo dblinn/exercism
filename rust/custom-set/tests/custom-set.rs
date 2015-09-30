@@ -15,8 +15,9 @@ fn make_set(vec: Vec<usize>) -> CustomSet<usize> {
 #[test]
 fn test_empty_set() {
     // let set: CustomSet<()> = CustomSet::new();
-    // assert_eq!(set.len(), 0);
-    // assert_eq!(set.is_empty(), true);
+    let set = std::collections::BTreeSet::<()>::new();
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.is_empty(), true);
 }
 
 #[test]
