@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::path::Path;
-use std::io::Read;
-use std::io::Write;
+use std::io::BufReader;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -10,6 +9,25 @@ pub enum Game {
 	Loss = 0,
 	Draw = 1,
 	Win = 2
+}
+
+impl Game {
+	pub fn parse(result_string: &str) -> Option<Game> {
+		match result_string {
+			"loss" => Some(Game::Loss),
+			"draw" => Some(Game::Draw),
+			"win" => Some(Game::Win),
+			_ => None
+		}
+	}
+
+	pub fn opponent_result(&self) -> Game {
+		match self {
+			&Game::Loss => Game::Win,
+			&Game::Draw => Game::Draw,
+			&Game::Win => Game::Loss
+		}
+	}
 }
 
 #[derive(Ord, Eq)]
@@ -23,6 +41,8 @@ impl TeamRecord {
         TeamRecord { name: name, record: vec![] }
     }
 
+	pub fn add_game(&mut self, game: Game) { self.record.push(game); }
+
     pub fn games_played(&self) -> usize {
         self.record.len()
     }
@@ -30,6 +50,17 @@ impl TeamRecord {
     pub fn points(&self) -> usize {
         self.record.iter().cloned().fold(0, |sum, game| sum + game as usize)
     }
+}
+
+struct GameOutcome {
+	pub away_team: String,
+	pub home_team: String,
+	away_team_result: Game
+}
+
+impl GameOutcome {
+	pub fn away_team_result(&self) -> Game { self.away_team_result }
+	pub fn home_team_result(&self) -> Game { self.away_team_result.opponent_result() }
 }
 
 impl PartialEq for TeamRecord {
@@ -43,13 +74,44 @@ impl PartialOrd for TeamRecord {
     }
 }
 
+struct Parser;
+impl Parser {
+	fn parse(file: File) -> HashMap<String, TeamRecord> {
+		let mut records = HashMap::new();
+		let reader = BufReader::new(file);
+		for score_line in reader.lines() {
+			match Self::parse_outcome(score_line) {
+				Some(outcome) => {
+					records.entry(outcome.away_team)
+						.or(TeamRecord::new(outcome.away_team))
+						.add_game(outcome.away_team_result);
+					records.entry(outcome.home_team)
+						.or(TeamRecord::new(outcome.home_team))
+						.add_game(outcome.home_team_result);
+				},
+				_ => {}
+			}
+		}
+
+		records
+	}
+
+	fn parse_outcome(score_line: &str) -> Option<GameOutcome> {
+		if (score_line.starts_with('#')) { return None }
+		let fields = score_line.split(';');
+		if (fields.len() != 3) { return None }
+		Game::parse(fields[2])
+			.map(|game| GameOutcome { away_team: fields[0], home_team: fields[1], outcome: game })
+	}
+}
+
 struct Standings {
     records: HashMap<String, TeamRecord>
 }
 
 impl Standings {
     pub fn from_file(file: File) -> Standings {
-        Standings { records: HashMap::new() }
+        Standings { records: Parser::parse(file) }
     }
 
     pub fn sorted(&mut self) -> Vec<&TeamRecord> {
