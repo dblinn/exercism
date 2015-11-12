@@ -9,21 +9,18 @@ fn test_zero_area_1() {
 }
 
 #[test]
-#[ignore]
 fn test_zero_area_2() {
     let lines = vec![""];
     assert_eq!(0, count(&lines))
 }
 
 #[test]
-#[ignore]
 fn test_empty_area() {
     let lines = vec![" "];
     assert_eq!(0, count(&lines))
 }
 
 #[test]
-#[ignore]
 fn test_one_rectangle() {
     let lines = vec![
         "+-+",
