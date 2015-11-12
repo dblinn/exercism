@@ -24,7 +24,6 @@ impl ContiguousLine {
         if symbol == CORNER {
             self.points.push(Point { x: x, y: y })
         } else if symbol != self.connector_symbol {
-            //println!("Clearing: {} vs {}", symbol, self.connector_symbol);
             self.reset();
         }
     }
@@ -57,16 +56,28 @@ impl Connector {
         self.down_neighbors.extend(vertical_neighbors.points().iter().cloned());
     }
 
-    // Returns number of rectangles of which this connector is the upper right corner
-    pub fn rectangle_count(&self, connection_topology: &Vec<Vec<Option<Connector>>>) -> usize {
-        let mut count = 0;
-        println!("{}x{}", self.right_neighbors.len(), self.down_neighbors.len());
+    pub fn has_below(&self, p: &Point) -> bool {
+        self.down_neighbors.contains(p)
+    }
 
+    pub fn has_right(&self, p: &Point) -> bool {
+        self.right_neighbors.contains(p)
+    }
+
+    // Returns number of rectangles of which this connector is the upper right corner
+    pub fn rectangle_count(&self, topology: &Topology) -> usize {
+        let mut count = 0;
         for rn in &self.right_neighbors {
             for dn in &self.down_neighbors {
                 let bottom_right = Point { x: rn.x, y: dn.y };
-                println!("{:?}", bottom_right);
-                count += if let Some(_) = connection_topology[bottom_right.x][bottom_right.y] { 1 } else { 0 }
+                count += match topology.connector(&bottom_right) {
+                    &Some(_) => {
+                        if topology.connector(&rn).as_ref().map_or(false, |c| c.has_below(&bottom_right)) &&
+                            topology.connector(&dn).as_ref().map_or(false, |c| c.has_right(&bottom_right)) { 1 }
+                        else { 0 }
+                    }
+                    &None => 0
+                }
             }
         }
         count
@@ -92,39 +103,39 @@ impl Topology {
         ).collect();
 
         Self::read_connections(&mut connections, characters);
-        println!("{:?}", connections);
         Topology { connections: connections }
+    }
+
+    pub fn connector<'a>(&'a self, p: &Point) -> &'a Option<Connector> {
+        &self.connections[p.x][p.y]
     }
 
     pub fn rectangle_count(&self) -> usize {
         self.connections.iter().fold(0, |outer_sum, connector_line| {
             connector_line.iter().fold(outer_sum, |inner_sum, connector_option| {
                 inner_sum + connector_option.as_ref().map_or(0, |connector| {
-                    connector.rectangle_count(&self.connections)
+                    connector.rectangle_count(&self)
                 })
             })
         })
     }
 
     fn read_connections(connections: &mut Vec<Vec<Option<Connector>>>, characters: Vec<Vec<char>>) {
+        if connections.len() == 0 { return; }
         let mut horizontal_line = ContiguousLine::new(HORIZONTAL);
-        let mut vertical_lines: Vec<ContiguousLine> = characters.iter().map(|_| ContiguousLine::new(VERTICAL)).collect();
+        let mut vertical_lines: Vec<ContiguousLine> = characters[0].iter().map(|_| ContiguousLine::new(VERTICAL)).collect();
 
-        for (x, line) in characters.iter().enumerate().rev() {
+        for (row, line) in characters.iter().enumerate().rev() {
             horizontal_line.reset();
-            println!("");
 
-            for (y, c) in line.iter().enumerate().rev() {
-                for connection in connections[x][y].iter_mut() {
-                    connection.add_neighbors(&horizontal_line, &vertical_lines[x]);
+            for (col, c) in line.iter().enumerate().rev() {
+                for connection in connections[row][col].iter_mut() {
+                    connection.add_neighbors(&vertical_lines[col], &horizontal_line);
                 }
-                vertical_lines[y].add(*c, x, y);
-                println!("{},{}: new size: {}, char was: {}", x, y, vertical_lines[y].points.len(), *c);
-                horizontal_line.add(*c, x, y);
-                // print!("({},{})", x, y);
+                vertical_lines[col].add(*c, row, col);
+                horizontal_line.add(*c, row, col);
             }
         }
-        println!("");
     }
 }
 

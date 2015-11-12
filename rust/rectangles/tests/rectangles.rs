@@ -31,7 +31,6 @@ fn test_one_rectangle() {
 }
 
 #[test]
-#[ignore]
 fn test_two_rectangles_no_shared_parts() {
     let lines = vec![
         "  +-+",
@@ -44,7 +43,6 @@ fn test_two_rectangles_no_shared_parts() {
 }
 
 #[test]
-#[ignore]
 fn test_five_rectangles_three_regions() {
     let lines = vec![
         "  +-+",
@@ -57,7 +55,6 @@ fn test_five_rectangles_three_regions() {
 }
 
 #[test]
-#[ignore]
 fn test_incomplete_rectangles() {
     let lines = vec![
         "  +-+",
@@ -70,7 +67,6 @@ fn test_incomplete_rectangles() {
 }
 
 #[test]
-#[ignore]
 fn test_complicated() {
     let lines = vec![
         "+------+----+",
@@ -83,7 +79,6 @@ fn test_complicated() {
 }
 
 #[test]
-#[ignore]
 fn test_not_so_complicated() {
     let lines = vec![
         "+------+----+",
