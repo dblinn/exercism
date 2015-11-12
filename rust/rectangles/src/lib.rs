@@ -6,8 +6,8 @@ const VERTICAL: char = '|';
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 struct Point {
-    pub x: usize,
-    pub y: usize
+    pub row: usize,
+    pub col: usize
 }
 
 struct ContiguousLine {
@@ -20,9 +20,9 @@ impl ContiguousLine {
         ContiguousLine { connector_symbol: connector_symbol, points: vec![] }
     }
 
-    pub fn add(&mut self, symbol: char, x: usize, y: usize) {
+    pub fn add(&mut self, symbol: char, row: usize, col: usize) {
         if symbol == CORNER {
-            self.points.push(Point { x: x, y: y })
+            self.points.push(Point { row: row, col: col })
         } else if symbol != self.connector_symbol {
             self.reset();
         }
@@ -40,9 +40,9 @@ struct Connector {
 }
 
 impl Connector {
-    pub fn new(x: usize, y: usize) -> Connector {
+    pub fn new(row: usize, col: usize) -> Connector {
         Connector {
-            coordinates: Point { x: x, y: y },
+            coordinates: Point { row: row, col: col },
             right_neighbors: Vec::new(),
             down_neighbors: Vec::new()
         }
@@ -69,7 +69,7 @@ impl Connector {
         let mut count = 0;
         for rn in &self.right_neighbors {
             for dn in &self.down_neighbors {
-                let bottom_right = Point { x: rn.x, y: dn.y };
+                let bottom_right = Point { row: dn.row, col: rn.col };
                 count += match topology.connector(&bottom_right) {
                     &Some(_) => {
                         if topology.connector(&rn).as_ref().map_or(false, |c| c.has_below(&bottom_right)) &&
@@ -107,7 +107,7 @@ impl Topology {
     }
 
     pub fn connector<'a>(&'a self, p: &Point) -> &'a Option<Connector> {
-        &self.connections[p.x][p.y]
+        &self.connections[p.row][p.col]
     }
 
     pub fn rectangle_count(&self) -> usize {
@@ -130,7 +130,7 @@ impl Topology {
 
             for (col, c) in line.iter().enumerate().rev() {
                 for connection in connections[row][col].iter_mut() {
-                    connection.add_neighbors(&vertical_lines[col], &horizontal_line);
+                    connection.add_neighbors(&horizontal_line, &vertical_lines[col]);
                 }
                 vertical_lines[col].add(*c, row, col);
                 horizontal_line.add(*c, row, col);
