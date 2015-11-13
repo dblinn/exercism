@@ -190,9 +190,9 @@ impl Standings {
 }
 
 pub fn tally(input_path: &Path, output_path: &Path) -> Option<usize> {
-    let input_file = File::open(input_path).ok()
+    let input_file = File::open(input_path)
 		.expect("Failed to open input file for reading");
-    let output_file = File::create(output_path).ok()
+    let output_file = File::create(output_path)
 		.expect("Failed to open output file for writing");
 
     let standings = Standings::from_file(input_file);
