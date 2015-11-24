@@ -49,10 +49,10 @@ impl Instruction for Div {
 struct Dup;
 impl Instruction for Dup {
     fn eval(&self, forth: &mut Forth) -> ForthResult {
-        match forth.stack.pop() {
-            Some(x) => { forth.stack.push(x); forth.stack.push(x); Ok(()) }
-            None => Err(Error::StackUnderflow)
-        }
+        // This somewhat awkward syntax is necessary because we last() will borrow
+        // the stack and we can't push onto it while it is borrowed.
+        let last = match forth.stack.last() { Some(x) => Some(*x), None => None };
+        if let Some(x) = last { forth.stack.push(x); Ok(()) } else { Err(Error::StackUnderflow) }
     }
 }
 struct Drop;
@@ -61,6 +61,33 @@ impl Instruction for Drop {
         match forth.stack.pop() {
             Some(_) => { Ok(()) }
             None => Err(Error::StackUnderflow)
+        }
+    }
+}
+struct Swap;
+impl Instruction for Swap {
+    fn eval(&self, forth: &mut Forth) -> ForthResult {
+        let stack_size = forth.stack.len();
+        if stack_size >= 2 {
+            forth.stack.swap(stack_size - 1, stack_size - 2);
+            Ok(())
+        }
+        else {
+            Err(Error::StackUnderflow)
+        }
+    }
+}
+struct Over;
+impl Instruction for Over {
+    fn eval(&self, forth: &mut Forth) -> ForthResult {
+        let stack_size = forth.stack.len();
+        if stack_size >= 2 {
+            let x = forth.stack[stack_size - 2];
+            forth.stack.push(x);
+            Ok(())
+        }
+        else {
+            Err(Error::StackUnderflow)
         }
     }
 }
@@ -124,6 +151,8 @@ impl Forth {
             "/" => Box::new(Div),
             "dup" => Box::new(Dup),
             "drop" => Box::new(Drop),
+            "swap" => Box::new(Swap),
+            "over" => Box::new(Over),
             num @ _ => Box::new(Number { n: num.parse::<i32>().ok().unwrap() })
         }
     }
