@@ -46,6 +46,24 @@ impl Instruction for Div {
         )
     }
 }
+struct Dup;
+impl Instruction for Dup {
+    fn eval(&self, forth: &mut Forth) -> ForthResult {
+        match forth.stack.pop() {
+            Some(x) => { forth.stack.push(x); forth.stack.push(x); Ok(()) }
+            None => Err(Error::StackUnderflow)
+        }
+    }
+}
+struct Drop;
+impl Instruction for Drop {
+    fn eval(&self, forth: &mut Forth) -> ForthResult {
+        match forth.stack.pop() {
+            Some(_) => { Ok(()) }
+            None => Err(Error::StackUnderflow)
+        }
+    }
+}
 struct Number {
     n: i32
 }
@@ -99,11 +117,13 @@ impl Forth {
     }
 
     fn build_operation(token: &str) -> Box<Instruction> {
-        match token {
+        match token.to_lowercase().as_ref() {
             "+" => Box::new(Add),
             "-" => Box::new(Sub),
             "*" => Box::new(Mul),
             "/" => Box::new(Div),
+            "dup" => Box::new(Dup),
+            "drop" => Box::new(Drop),
             num @ _ => Box::new(Number { n: num.parse::<i32>().ok().unwrap() })
         }
     }

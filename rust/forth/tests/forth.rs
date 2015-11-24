@@ -87,7 +87,6 @@ fn division_by_zero() {
 }
 
 #[test]
-#[ignore]
 fn dup() {
     let mut f = Forth::new();
     f.eval("1 DUP");
@@ -95,7 +94,6 @@ fn dup() {
 }
 
 #[test]
-#[ignore]
 fn dup_case_insensitive() {
     let mut f = Forth::new();
     f.eval("1 Dup");
@@ -103,7 +101,6 @@ fn dup_case_insensitive() {
 }
 
 #[test]
-#[ignore]
 fn dup_error() {
     let mut f = Forth::new();
     assert_eq!(
@@ -113,7 +110,6 @@ fn dup_error() {
 }
 
 #[test]
-#[ignore]
 fn drop() {
     let mut f = Forth::new();
     f.eval("1 drop");
@@ -121,7 +117,6 @@ fn drop() {
 }
 
 #[test]
-#[ignore]
 fn drop_with_two() {
     let mut f = Forth::new();
     f.eval("1 2 drop");
@@ -129,7 +124,6 @@ fn drop_with_two() {
 }
 
 #[test]
-#[ignore]
 fn drop_error() {
     let mut f = Forth::new();
     assert_eq!(
