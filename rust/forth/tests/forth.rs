@@ -10,7 +10,6 @@ fn no_input_no_stack() {
 }
 
 #[test]
-#[ignore]
 fn numbers_just_get_pushed_onto_the_stack() {
     let mut f = Forth::new();
     f.eval("1 2 3 4 5 -1");
@@ -18,7 +17,6 @@ fn numbers_just_get_pushed_onto_the_stack() {
 }
 
 #[test]
-#[ignore]
 fn non_word_characters_are_separators() {
     let mut f = Forth::new();
     // Note the Ogham Space Mark ( ), this is a spacing character.
@@ -27,7 +25,6 @@ fn non_word_characters_are_separators() {
 }
 
 #[test]
-#[ignore]
 fn basic_arithmetic_1() {
     let mut f = Forth::new();
     f.eval("1 2 + 4 -");
@@ -35,7 +32,6 @@ fn basic_arithmetic_1() {
 }
 
 #[test]
-#[ignore]
 fn basic_arithmetic_2() {
     let mut f = Forth::new();
     f.eval("2 4 * 3 /");
@@ -43,7 +39,6 @@ fn basic_arithmetic_2() {
 }
 
 #[test]
-#[ignore]
 fn addition_error() {
     let mut f = Forth::new();
     assert_eq!(
@@ -53,7 +48,6 @@ fn addition_error() {
 }
 
 #[test]
-#[ignore]
 fn subtraction_error() {
     let mut f = Forth::new();
     assert_eq!(
@@ -63,7 +57,6 @@ fn subtraction_error() {
 }
 
 #[test]
-#[ignore]
 fn multiplication_error() {
     let mut f = Forth::new();
     assert_eq!(
@@ -73,7 +66,6 @@ fn multiplication_error() {
 }
 
 #[test]
-#[ignore]
 fn division_error() {
     let mut f = Forth::new();
     assert_eq!(
@@ -83,11 +75,13 @@ fn division_error() {
 }
 
 #[test]
-#[ignore]
 fn division_by_zero() {
     let mut f = Forth::new();
     assert_eq!(
         Err(Error::DivisionByZero),
+        // This looks like it performs the following operations:
+        // "4 2 2 -" => "4 0"
+        // "4 0 /" => Error::DivisionByZero
         f.eval("4 2 2 - /")
     );
 }
