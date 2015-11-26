@@ -1,11 +1,14 @@
 use std::collections::VecDeque;
+use std::collections::HashMap;
+use std::iter::FromIterator;
 
 pub type Value = i32;
 pub type ForthResult = Result<(), Error>;
 
 pub struct Forth {
-    pub instructions: VecDeque<Box<Instruction>>,
-    pub stack: Vec<i32>
+    pub instructions: VecDeque<String>,
+    pub stack: Vec<i32>,
+    pub custom_instructions: HashMap<String, CustomInstructionEvaluator>
 }
 
 #[derive(Debug, PartialEq)]
@@ -14,6 +17,17 @@ pub enum Error {
     StackUnderflow,
     UnknownWord,
     InvalidWord,
+}
+
+const BEGIN_STRING: &'static str = ":";
+const END_STRING: &'static str = ";";
+
+enum Token<'a> {
+    Number(i32),
+    Token(&'a str),
+    Empty,
+    Begin,
+    End
 }
 
 pub trait Instruction {
@@ -91,6 +105,10 @@ impl Instruction for Over {
         }
     }
 }
+struct NoOp;
+impl Instruction for NoOp {
+    fn eval(&self, _: &mut Forth) -> ForthResult { Ok(()) }
+}
 struct Number {
     n: i32
 }
@@ -100,10 +118,68 @@ impl Instruction for Number {
         Ok(())
     }
 }
+// You need a custom instruction reader and a separate custom instruction evaluator
+pub struct CustomInstructionReader;
+impl CustomInstructionReader {
+    fn read_name(instructions: &mut VecDeque<String>) -> Result<String, Error> {
+        if let Some(instruction) = instructions.pop_front() {
+            match Forth::tokenize(instruction.as_ref()) {
+                Token::Token(token) => { return Ok(token.to_lowercase()); }
+                _ => { return Err(Error::InvalidWord); }
+            }
+        } else {
+            return Err(Error::InvalidWord);
+        }
+    }
+
+    fn read_expansion(instructions: &mut VecDeque<String>) -> Result<Vec<String>, Error> {
+        let mut expansion: Vec<String> = vec![];
+        loop {
+            if let Some(instruction) = instructions.pop_front() {
+                match instruction.as_ref() {
+                    END_STRING => { return Ok(expansion); }
+                    _ => { expansion.push(instruction.to_string()) }
+                }
+            } else {
+                return Err(Error::InvalidWord);
+            }
+        }
+    }
+}
+impl Instruction for CustomInstructionReader {
+    fn eval(&self, forth: &mut Forth) -> ForthResult {
+        match (Self::read_name(&mut forth.instructions), Self::read_expansion(&mut forth.instructions)) {
+            (Ok(name), Ok(expansion)) => {
+                forth.custom_instructions.insert(name, CustomInstructionEvaluator::new(expansion));
+                Ok(())
+            }
+            (Err(e), _) => Err(e),
+            (_, Err(e)) => Err(e)
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CustomInstructionEvaluator {
+    expansion: Vec<String>
+}
+impl CustomInstructionEvaluator {
+    fn new(expansion: Vec<String>) -> CustomInstructionEvaluator {
+        CustomInstructionEvaluator { expansion: expansion }
+    }
+}
+impl Instruction for CustomInstructionEvaluator {
+    fn eval(&self, forth: &mut Forth) -> ForthResult {
+        for instruction in self.expansion.iter().cloned().rev() {
+            forth.instructions.push_front(instruction)
+        }
+        Ok(())
+    }
+}
 
 impl Forth {
     pub fn new() -> Forth {
-        Forth { stack: vec![], instructions: VecDeque::new() }
+        Forth { stack: vec![], instructions: VecDeque::new(), custom_instructions: HashMap::new() }
     }
 
     pub fn format_stack(&self) -> String {
@@ -128,32 +204,68 @@ impl Forth {
     }
 
     pub fn eval(&mut self, input: &str) -> ForthResult {
-        let tokens: Vec<&str> = input.split(|c: char| !c.is_alphanumeric() && !"-*+/".contains(c)).collect();
-        self.process_tokens(&tokens)
+        self.instructions = Self::split(input);
+        self.interpret_instructions()
     }
 
-    fn process_tokens(&mut self, tokens: &Vec<&str>) -> ForthResult {
-        self.instructions = tokens.iter().map(|token| Self::build_operation(token)).collect();
+    fn interpret_instructions(&mut self) -> ForthResult {
         loop {
             match self.instructions.pop_front() {
-                Some(instruction) => { try!(instruction.eval(self)); }
-                None => { break; }
+                Some(instruction) => {
+                    match self.build_operation(instruction) {
+                        Ok(op) => { try!(op.eval(self)) }
+                        Err(e) => { return Err(e); }
+                    }
+                }
+                None => { return Ok(()); }
             }
         }
-        Ok(())
     }
 
-    fn build_operation(token: &str) -> Box<Instruction> {
-        match token.to_lowercase().as_ref() {
-            "+" => Box::new(Add),
-            "-" => Box::new(Sub),
-            "*" => Box::new(Mul),
-            "/" => Box::new(Div),
-            "dup" => Box::new(Dup),
-            "drop" => Box::new(Drop),
-            "swap" => Box::new(Swap),
-            "over" => Box::new(Over),
-            num @ _ => Box::new(Number { n: num.parse::<i32>().ok().unwrap() })
+    fn build_token_operation(&self, token: &str) -> Result<Box<Instruction>, Error> {
+        if let Some(instruction) = self.custom_instructions.get(token).cloned() {
+            return Ok(Box::new(instruction));
         }
+        match token {
+            "+" => Ok(Box::new(Add)),
+            "-" => Ok(Box::new(Sub)),
+            "*" => Ok(Box::new(Mul)),
+            "/" => Ok(Box::new(Div)),
+            "dup" => Ok(Box::new(Dup)),
+            "drop" => Ok(Box::new(Drop)),
+            "swap" => Ok(Box::new(Swap)),
+            "over" => Ok(Box::new(Over)),
+            _ => Err(Error::UnknownWord)
+        }
+    }
+
+    fn build_operation(&self, input: String) -> Result<Box<Instruction>, Error> {
+        match Self::tokenize(input.as_ref()) {
+            Token::Number(n) => Ok(Box::new(Number { n: n })),
+            Token::Begin => Ok(Box::new(CustomInstructionReader)),
+            Token::End => Err(Error::InvalidWord),
+            Token::Empty => Ok(Box::new(NoOp)),
+            Token::Token(token) => self.build_token_operation(token.to_lowercase().as_ref())
+        }
+    }
+
+    fn split<T>(input: &str) -> T
+        where T: FromIterator<String>
+    {
+        input.split(|c: char| c.is_whitespace() || c.is_control())
+            .map(|s| s.to_string())
+            .collect::<T>()
+    }
+
+    fn tokenize<'a>(input: &'a str) -> Token<'a> {
+        match input {
+            BEGIN_STRING => { return Token::Begin; }
+            END_STRING => { return Token::End; }
+            "" => { return Token::Empty; }
+            _ => { }
+        }
+
+        if let Ok(n) = input.parse::<i32>() { return Token::Number(n); }
+        return Token::Token(input);
     }
 }
