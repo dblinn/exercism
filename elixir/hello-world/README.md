@@ -4,7 +4,7 @@ Write a program that greets the user by name, or by saying "Hello, World!" if no
 
 ["Hello, World!"](http://en.wikipedia.org/wiki/%22Hello,_world!%22_program) is the traditional first program for beginning programming in a new language.
 
-**Note:** You can skip this exercise by running:
+Note: You can skip this exercise by running:
 
     exercism skip $LANGUAGE hello-world
 
@@ -59,7 +59,7 @@ commenting out the relevant `@tag :pending` with a `#` symbol.
 For example:
 
 ```elixir
-# @tag :pending
+## @tag :pending
 test "shouting" do
   assert Bob.hey("WATCH OUT!") == "Whoa, chill out!"
 end
@@ -69,7 +69,7 @@ Or, you can enable all the tests by commenting out the
 `ExUnit.configure` line in the test suite.
 
 ```elixir
-# ExUnit.configure exclude: :pending, trace: true
+## ExUnit.configure exclude: :pending, trace: true
 ```
 
 For more detailed information about the Elixir track, please
