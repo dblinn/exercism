@@ -49,3 +49,8 @@ fn test_white() {
 fn test_yellow() {
     assert_eq!(Some(16776960), hexadecimal::hex_to_int("ffff00"));
 }
+
+#[test]
+fn test_leading_zeros() {
+    assert_eq!(Some(4095), hexadecimal::hex_to_int("000fff"));
+}
